@@ -5,8 +5,10 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsManager;
@@ -34,11 +36,16 @@ public class SmsIntentService extends IntentService {
             	String number = extras.getString("number");
             	String message = extras.getString("message");
             	if (number != null && number.length() > 0 && message != null && message.length() > 0) {
-            		SmsManager smsManager = SmsManager.getDefault();
-            		smsManager.sendTextMessage(number, null, message, null, null);
+//            		SmsManager smsManager = SmsManager.getDefault();
+//            		smsManager.sendTextMessage(number, null, message, null, null);
             		String result = number + ": " + message;
             		Log.i(TAG, result);
             		sendNotification(result);
+            		
+            		ContentValues values = new ContentValues();
+            		values.put("address", number);
+            		values.put("body", message); 
+            		getApplicationContext().getContentResolver().insert(Uri.parse("content://sms/sent"), values);
             	}
             }
         }
