@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Android SMS Gateway</string>
+    <string name="send">Send Registration ID</string>
+    <string name="ready">You are set up and ready to send text messages!</string>
+
+</resources>
