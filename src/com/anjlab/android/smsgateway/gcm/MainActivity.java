@@ -20,143 +20,177 @@ import java.io.IOException;
 
 public class MainActivity extends Activity {
 
-    public static final String EXTRA_MESSAGE = "message";
-    public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "appVersion";
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    static final String TAG = "SMS Gateway";
-    
-    /**
-     * Substitute you own sender ID here. This is the project number you got
-     * from the API Console, as described in "Getting Started."
-     */
-    String SENDER_ID = "576549653959";
+	public static final String EXTRA_MESSAGE = "message";
+	public static final String PROPERTY_REG_ID = "registration_id";
+	public static final String PROPERTY_SENDER_ID = "sender_id";
+	private static final String PROPERTY_APP_VERSION = "appVersion";
+	private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+	static final String TAG = "SMS Gateway";
 
-    GoogleCloudMessaging gcm;
-    String regid;
+	GoogleCloudMessaging gcm;
+	String regid;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.main);
+		setContentView(R.layout.main);
+		findViewById(R.id.send).setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("text/plain");
+				intent.putExtra(Intent.EXTRA_SUBJECT, "Your Android SMS Gateway Registration ID");
+				intent.putExtra(Intent.EXTRA_TEXT, regid);
+				startActivity(Intent.createChooser(intent, "Send Email"));
+			}
+		});
+		findViewById(R.id.save).setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				TextView view = (TextView) findViewById(R.id.senderIdInputView);
+				storeSenderId(view.getText().toString());
+				registerInBackground();
+			}
+		});
 
-        // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
-        if (checkPlayServices()) {
-            gcm = GoogleCloudMessaging.getInstance(this);
-            regid = getRegistrationId(getApplicationContext());
+		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
+		if (checkPlayServices()) {
+			gcm = GoogleCloudMessaging.getInstance(this);
+			regid = getRegistrationId(getApplicationContext());
 
-            if (regid.length() == 0)
-                registerInBackground();
-        } 
-        else
-            Log.i(TAG, "No valid Google Play Services APK found.");
-    }
+			if (regid.length() == 0)
+			{
+				findViewById(R.id.send).setVisibility(View.INVISIBLE);
+				setStatusText("");
+			}
+			else
+				findViewById(R.id.senderIdPanel).setVisibility(View.GONE);
+		} 
+		else {
+			Log.i(TAG, "No valid Google Play Services APK found.");
+			finish();
+		}
+	}
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        
-        checkPlayServices();
-    }
+	@Override
+	protected void onResume() {
+		super.onResume();
 
-    private boolean checkPlayServices() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, this, PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            } else {
-                Log.i(TAG, "This device is not supported.");
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }
+		checkPlayServices();
+	}
 
-    private void storeRegistrationId(Context context, String regId) {
-        final SharedPreferences prefs = getGcmPreferences();
-        int appVersion = getAppVersion(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_REG_ID, regId);
-        editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
-    }
+	private boolean checkPlayServices() {
+		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+		if (resultCode != ConnectionResult.SUCCESS) {
+			if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+				GooglePlayServicesUtil.getErrorDialog(resultCode, this, PLAY_SERVICES_RESOLUTION_REQUEST).show();
+			} else {
+				Log.i(TAG, "This device is not supported.");
+				finish();
+			}
+			return false;
+		}
+		return true;
+	}
 
-    private String getRegistrationId(Context context) {
-        final SharedPreferences prefs = getGcmPreferences();
-        String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-        if (registrationId.length() == 0) {
-            Log.i(TAG, "Registration not found.");
-            return "";
-        }
-        // Check if app was updated; if so, it must clear the registration ID
-        // since the existing regID is not guaranteed to work with the new
-        // app version.
-        int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-        int currentVersion = getAppVersion(context);
-        if (registeredVersion != currentVersion) {
-            Log.i(TAG, "App version changed.");
-            return "";
-        }
-        return registrationId;
-    }
+	private void storeRegistrationId(Context context, String regId) {
+		final SharedPreferences prefs = getGcmPreferences();
+		int appVersion = getAppVersion(context);
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putString(PROPERTY_REG_ID, regId);
+		editor.putInt(PROPERTY_APP_VERSION, appVersion);
+		editor.commit();
+	}
 
-    private void registerInBackground() {
-        new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... params) {
-                String msg = "";
-                try {
-                    if (gcm == null)
-                        gcm = GoogleCloudMessaging.getInstance(getApplicationContext());
-                    regid = gcm.register(SENDER_ID);
-                    msg = "\nDevice registered, registration ID=" + regid;
-                    storeRegistrationId(getApplicationContext(), regid);
-                } catch (IOException ex) {
-                    msg = "Error :" + ex.getMessage();
-                }
-                return msg;
-            }
+	private String getRegistrationId(Context context) {
+		final SharedPreferences prefs = getGcmPreferences();
+		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
+		if (registrationId.length() == 0) {
+			Log.i(TAG, "Registration not found.");
+			return "";
+		}
+		// Check if app was updated; if so, it must clear the registration ID
+		// since the existing regID is not guaranteed to work with the new
+		// app version.
+		int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+		int currentVersion = getAppVersion(context);
+		if (registeredVersion != currentVersion) {
+			Log.i(TAG, "App version changed.");
+			return "";
+		}
+		return registrationId;
+	}
 
-            @Override
-            protected void onPostExecute(String msg) {
-            	TextView textView = (TextView) findViewById(R.id.display);
-            	textView.append(msg + "\n");
-            }
-        }.execute(null, null, null);
-    }
+	private String getSenderId() {
+		return getGcmPreferences().getString(PROPERTY_SENDER_ID, "");
+	}
 
-    public void onClick(final View view) {
+	private void storeSenderId(String senderId) {
+		final SharedPreferences prefs = getGcmPreferences();
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putString(PROPERTY_SENDER_ID, senderId);
+		editor.commit();
+	}
 
-        if (view == findViewById(R.id.send)) {
-        	Intent intent = new Intent(Intent.ACTION_SEND);
-        	intent.setType("text/plain");
-        	intent.putExtra(Intent.EXTRA_EMAIL, "emailaddress@emailaddress.com");
-        	intent.putExtra(Intent.EXTRA_SUBJECT, "Your Android SMS Gateway Registration ID");
-        	intent.putExtra(Intent.EXTRA_TEXT, regid);
+	private void registerInBackground() {
+		new AsyncTask<Void, Void, String>() {
+			@Override
+			protected String doInBackground(Void... params) {
+				String msg = "";
+				try {
+					if (gcm == null)
+						gcm = GoogleCloudMessaging.getInstance(getApplicationContext());
+					regid = gcm.register(getSenderId());
+					msg = "Device registered, Registration ID=" + regid;
+					storeRegistrationId(getApplicationContext(), regid);
+				} 
+				catch (IOException ex) {
+					msg = "Error: " + ex.getMessage();
+				}
+				return msg;
+			}
 
-        	startActivity(Intent.createChooser(intent, "Send Email"));
+			@Override
+			protected void onPostExecute(final String msg) {
+				runOnUiThread(new Runnable() {
 
-        	Log.i(TAG, "REG_ID: " + regid);
-        }
-    }
+					@Override
+					public void run() {
+						setStatusText(msg);
+						if (regid != null && regid.length() > 0) {
+							findViewById(R.id.send).setVisibility(View.VISIBLE);
+							findViewById(R.id.senderIdPanel).setVisibility(View.GONE);
+						}
+					}
+				});
+				
+			}
+		}.execute(null, null, null);
+	}
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
+	private void setStatusText(String msg) {
+		TextView textView = (TextView) findViewById(R.id.display);
+		textView.setText(msg);
+	}
 
-    private static int getAppVersion(Context context) {
-        try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
-        } catch (NameNotFoundException e) {
-            throw new RuntimeException("Could not get package name: " + e);
-        }
-    }
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
 
-    private SharedPreferences getGcmPreferences() {
-        return getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
-    }
+	private static int getAppVersion(Context context) {
+		try {
+			PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+			return packageInfo.versionCode;
+		} catch (NameNotFoundException e) {
+			throw new RuntimeException("Could not get package name: " + e);
+		}
+	}
+
+	private SharedPreferences getGcmPreferences() {
+		return getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+	}
 }
