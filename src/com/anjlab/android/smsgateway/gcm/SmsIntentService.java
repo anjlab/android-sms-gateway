@@ -36,10 +36,12 @@ public class SmsIntentService extends IntentService {
             	String number = extras.getString("number");
             	String message = extras.getString("message");
             	if (number != null && number.length() > 0 && message != null && message.length() > 0) {
-//            		SmsManager smsManager = SmsManager.getDefault();
-//            		smsManager.sendTextMessage(number, null, message, null, null);
+            		SmsManager smsManager = SmsManager.getDefault();
+            		smsManager.sendTextMessage(number, null, message, null, null);
+            		
             		String result = number + ": " + message;
             		Log.i(TAG, result);
+            		
             		sendNotification(result);
             		
             		ContentValues values = new ContentValues();
