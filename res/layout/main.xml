@@ -29,6 +29,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:gravity="center"
+            android:text="576549653959"
             android:inputType="numberDecimal" >
         </EditText>
 

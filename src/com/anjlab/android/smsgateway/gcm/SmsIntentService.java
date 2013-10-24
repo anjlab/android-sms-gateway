@@ -1,5 +1,6 @@
 package com.anjlab.android.smsgateway.gcm;
 
+import com.bugsense.trace.BugSenseHandler;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
@@ -36,18 +37,27 @@ public class SmsIntentService extends IntentService {
             	String number = extras.getString("number");
             	String message = extras.getString("message");
             	if (number != null && number.length() > 0 && message != null && message.length() > 0) {
-            		SmsManager smsManager = SmsManager.getDefault();
-            		smsManager.sendTextMessage(number, null, message, null, null);
-            		
-            		String result = number + ": " + message;
-            		Log.i(TAG, result);
-            		
-            		sendNotification(result);
-            		
-            		ContentValues values = new ContentValues();
-            		values.put("address", number);
-            		values.put("body", message); 
-            		getApplicationContext().getContentResolver().insert(Uri.parse("content://sms/sent"), values);
+            		try {
+            			SmsManager smsManager = SmsManager.getDefault();
+            			smsManager.sendTextMessage(number, null, message, null, null);
+
+            			String result = number + ": " + message;
+            			Log.i(TAG, result);
+
+            			sendNotification(result);
+
+            			ContentValues values = new ContentValues();
+            			values.put("address", number);
+            			values.put("body", message); 
+            			getApplicationContext().getContentResolver().insert(Uri.parse("content://sms/sent"), values);
+            		}
+            		catch (Exception ex) {
+            			Log.e(TAG, ex.toString());
+            			BugSenseHandler.initAndStartSession(this, "f502e669");
+            			BugSenseHandler.sendException(ex);
+            			BugSenseHandler.flush(this);
+            			BugSenseHandler.closeSession(this);
+            		}
             	}
             }
         }
