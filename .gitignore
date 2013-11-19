@@ -2,4 +2,8 @@ bin
 gen
 .project
 .classpath
+.gradle
+build
+.DS_Store
+.idea
 
