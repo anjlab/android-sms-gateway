@@ -6,4 +6,6 @@ gen
 build
 .DS_Store
 .idea
+.settings
+.metadata
 
