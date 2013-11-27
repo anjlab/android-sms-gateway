@@ -10,6 +10,7 @@ apply plugin: 'android'
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven { url 'http://www.bugsense.com/gradle/' }
 }
 
@@ -19,6 +20,7 @@ dependencies {
     compile 'com.android.support:support-v4:19.0.0'
     compile 'ch.acra:acra:4.4.0'
     compile 'com.bugsense.trace:bugsense:3.5'
+    compile 'com.anjlab.android:fx:1.0.1'
 }
 
 android {
