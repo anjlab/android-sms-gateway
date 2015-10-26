@@ -1,8 +1,5 @@
 package com.anjlab.android.smsgateway.gcm;
 
-import com.bugsense.trace.BugSenseHandler;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -15,11 +12,12 @@ import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+
 
 public class SmsIntentService extends IntentService {
     public static final int NOTIFICATION_ID = 1;
     private NotificationManager mNotificationManager;
-    NotificationCompat.Builder builder;
 
     public SmsIntentService() {
         super("GcmIntentService");
@@ -53,10 +51,6 @@ public class SmsIntentService extends IntentService {
             		}
             		catch (Exception ex) {
             			Log.e(TAG, ex.toString());
-            			BugSenseHandler.initAndStartSession(this, "f502e669");
-            			BugSenseHandler.sendException(ex);
-            			BugSenseHandler.flush(this);
-            			BugSenseHandler.closeSession(this);
             		}
             	}
             }
