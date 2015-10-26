@@ -4,7 +4,11 @@
     <string name="app_name">Android SMS Gateway</string>
     <string name="send">Send Registration ID</string>
     <string name="ready">You are set up and ready to send text messages!</string>
-    <string name="save">Save Project ID</string>
+    <string name="save_project_id">Save Project ID</string>
+    <string name="save">Save</string>
     <string name="save_sender_id">Your GSM Project ID:</string>
+    <string name="forward_incoming_messages">Forwarding incoming messages</string>
+    <string name="forward_incoming_enabled">Forwarding enabled</string>
+    <string name="error_no_play_services">No valid Google Play Services APK found.</string>
 
 </resources>

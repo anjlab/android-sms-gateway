@@ -16,7 +16,7 @@ repositories {
 dependencies {
     compile 'com.google.android.gms:play-services:3.1.36'
     compile 'com.android.support:support-v4:19.0.0'
-    compile 'com.anjlab.android:fx:1.0.6@aar'
+    compile 'com.jakewharton:butterknife:6.1.0'
 }
 
 android {
