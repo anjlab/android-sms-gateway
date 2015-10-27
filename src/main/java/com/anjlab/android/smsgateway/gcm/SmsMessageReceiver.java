@@ -20,8 +20,28 @@ public class SmsMessageReceiver extends BroadcastReceiver
             Object[] pdus = (Object[]) intent.getExtras().get(PDUS);
             if (pdus != null && pdus.length > 0)
             {
-                SmsMessage message = SmsMessage.createFromPdu((byte[]) pdus[0]);
-                String text = message.getMessageBody();
+                SmsMessage[] messages = new SmsMessage[pdus.length];
+                for (int i = 0; i < pdus.length; i++)
+                {
+                    messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                }
+
+                SmsMessage message = messages[0];
+                String text;
+                if (messages.length == 1 || message.isReplace())
+                {
+                    text = message.getDisplayMessageBody();
+                }
+                else
+                {
+                    StringBuilder textBuilder = new StringBuilder();
+                    for (SmsMessage msg : messages)
+                    {
+                        textBuilder.append(msg.getMessageBody());
+                    }
+                    text = textBuilder.toString();
+                }
+
                 String number = message.getDisplayOriginatingAddress();
 
                 Intent i = new Intent(context, HttpHookIntentService.class);

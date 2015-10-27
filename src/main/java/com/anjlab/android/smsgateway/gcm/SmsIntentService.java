@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -34,8 +35,12 @@ public class SmsIntentService extends IntentService {
             if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
             	String number = extras.getString("number");
             	String message = extras.getString("message");
-            	if (number != null && number.length() > 0 && message != null && message.length() > 0) {
+            	if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(message)) {
             		try {
+                        if (!number.startsWith("+"))
+                        {
+                            number = "+" + number;
+                        }
             			SmsManager smsManager = SmsManager.getDefault();
             			smsManager.sendTextMessage(number, null, message, null, null);
 

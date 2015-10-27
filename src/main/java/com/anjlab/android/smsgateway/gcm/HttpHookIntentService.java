@@ -7,9 +7,9 @@ import android.os.Bundle;
 import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
 import java.net.URL;
-
-import javax.net.ssl.HttpsURLConnection;
+import java.net.URLEncoder;
 
 public class HttpHookIntentService extends IntentService {
     public static final String URL = "url";
@@ -27,7 +27,7 @@ public class HttpHookIntentService extends IntentService {
         try
         {
             java.net.URL url = new URL(extras.getString(URL));
-            HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(10000);
             conn.setConnectTimeout(15000);
             conn.setRequestMethod("POST");
@@ -37,7 +37,7 @@ public class HttpHookIntentService extends IntentService {
             OutputStream os = conn.getOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
             writer.write(String.format("content=%s&from_number=%s",
-                                       extras.getString(TEXT),
+                                       URLEncoder.encode(extras.getString(TEXT), "UTF-8"),
                                        extras.getString(SENDER)));
             writer.flush();
             writer.close();
