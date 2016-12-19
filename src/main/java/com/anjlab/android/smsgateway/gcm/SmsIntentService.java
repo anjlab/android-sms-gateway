@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import java.util.ArrayList;
 
 public class SmsIntentService extends IntentService {
     public static final int NOTIFICATION_ID = 1;
@@ -26,38 +27,53 @@ public class SmsIntentService extends IntentService {
     public static final String TAG = "SMS Gateway";
 
     @Override
-    protected void onHandleIntent(Intent intent) {
+    protected void onHandleIntent(Intent intent)
+    {
         Bundle extras = intent.getExtras();
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
         String messageType = gcm.getMessageType(intent);
 
-        if (!extras.isEmpty()) {
-            if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-            	String number = extras.getString("number");
-            	String message = extras.getString("message");
-            	if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(message)) {
-            		try {
+        if (!extras.isEmpty())
+        {
+            if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType))
+            {
+                String number = extras.getString("number");
+                String message = extras.getString("message");
+                if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(message))
+                {
+                    try
+                    {
                         if (!number.startsWith("+"))
                         {
                             number = "+" + number;
                         }
-            			SmsManager smsManager = SmsManager.getDefault();
-            			smsManager.sendTextMessage(number, null, message, null, null);
+                        SmsManager smsManager = SmsManager.getDefault();
+                        ArrayList<String> parts = smsManager.divideMessage(message);
+                        if (parts.size() > 1)
+                        {
+                            smsManager.sendMultipartTextMessage(number, null, parts, null, null);
+                        }
+                        else
+                        {
+                            smsManager.sendTextMessage(number, null, message, null, null);
+                        }
 
-            			String result = number + ": " + message;
-            			Log.i(TAG, result);
+                        String result = number + ": " + message;
+                        Log.i(TAG, result);
 
-            			sendNotification(result);
+                        sendNotification(result);
 
-            			ContentValues values = new ContentValues();
-            			values.put("address", number);
-            			values.put("body", message); 
-            			getApplicationContext().getContentResolver().insert(Uri.parse("content://sms/sent"), values);
-            		}
-            		catch (Exception ex) {
-            			Log.e(TAG, ex.toString());
-            		}
-            	}
+                        ContentValues values = new ContentValues();
+                        values.put("address", number);
+                        values.put("body", message);
+                        getApplicationContext().getContentResolver()
+                                               .insert(Uri.parse("content://sms/sent"), values);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.e(TAG, ex.toString());
+                    }
+                }
             }
         }
         SmsBroadcastReceiver.completeWakefulIntent(intent);
